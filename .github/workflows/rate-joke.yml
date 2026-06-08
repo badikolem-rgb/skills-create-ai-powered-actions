@@ -1,6 +1,7 @@
 name: Rate Joke
 run-name: Rate Joke by ${{ github.event.comment.user.login }}
-
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: 'true'
 on:
   issue_comment:
     types: [created]
