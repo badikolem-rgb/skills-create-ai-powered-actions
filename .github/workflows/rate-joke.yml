@@ -7,24 +7,28 @@ on:
 
 permissions:
   issues: write
+  pull-requests: write
   contents: read
-  models: read
-
 
 jobs:
   joke:
     name: Rate Joke
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v4
+
       - name: Rate Joke
         id: rate-joke
         uses: ./
         with:
           joke: ${{ github.event.comment.body }}
           token: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Update comment
+        if: fromJSON(steps.rate-joke.outputs.result).is_joke == true
         uses: peter-evans/create-or-update-comment@v5
+        env:
+          JOKE_RESULT: ${{ steps.rate-joke.outputs.result }}
         with:
           comment-id: ${{ github.event.comment.id }}
           reactions: laugh
@@ -36,4 +40,6 @@ jobs:
             > ${{ github.event.comment.body }}
 
             **AI Analysis:**
-            ${{ steps.rate-joke.outputs.result }}
+            - **Score:** ${{ fromJSON(env.JOKE_RESULT).score }}/10
+            - **Humor Type:** ${{ fromJSON(env.JOKE_RESULT).humor_type }}
+            - **Feedback:** ${{ fromJSON(env.JOKE_RESULT).feedback }}
