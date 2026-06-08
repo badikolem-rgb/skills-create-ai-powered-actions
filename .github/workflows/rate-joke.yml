@@ -14,8 +14,12 @@ jobs:
   joke:
     name: Rate Joke
     runs-on: ubuntu-latest
+    # This opts the entire job into the Node 24 runner behavior early
+    env:
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true 
+
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6 # ⬅️ Bumped from v4 to v6
 
       - name: Rate Joke
         id: rate-joke
