@@ -14,12 +14,12 @@ jobs:
   joke:
     name: Rate Joke
     runs-on: ubuntu-latest
-    # This opts the entire job into the Node 24 runner behavior early
     env:
       FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true 
 
     steps:
-      - uses: actions/checkout@v6 # ⬅️ Bumped from v4 to v6
+      # 1. Upgraded from v4 to v6 to support Node 24 natively
+      - uses: actions/checkout@v6 
 
       - name: Rate Joke
         id: rate-joke
@@ -28,11 +28,19 @@ jobs:
           joke: ${{ github.event.comment.body }}
           token: ${{ secrets.GITHUB_TOKEN }}
 
+      # 2. Parse JSON safely in a standalone step
+      - name: Parse AI Output
+        id: parse-json
+        if: fromJSON(steps.rate-joke.outputs.result).is_joke == true
+        run: |
+          echo "score=$(echo '${{ steps.rate-joke.outputs.result }}' | jq -r '.score')" >> $GITHUB_OUTPUT
+          echo "humor_type=$(echo '${{ steps.rate-joke.outputs.result }}' | jq -r '.humor_type')" >> $GITHUB_OUTPUT
+          echo "feedback=$(echo '${{ steps.rate-joke.outputs.result }}' | jq -r '.feedback')" >> $GITHUB_OUTPUT
+
+      # 3. Update the comment using clean outputs
       - name: Update comment
         if: fromJSON(steps.rate-joke.outputs.result).is_joke == true
         uses: peter-evans/create-or-update-comment@v5
-        env:
-          JOKE_RESULT: ${{ steps.rate-joke.outputs.result }}
         with:
           comment-id: ${{ github.event.comment.id }}
           reactions: laugh
@@ -44,6 +52,6 @@ jobs:
             > ${{ github.event.comment.body }}
 
             **AI Analysis:**
-            - **Score:** ${{ fromJSON(env.JOKE_RESULT).score }}/10
-            - **Humor Type:** ${{ fromJSON(env.JOKE_RESULT).humor_type }}
-            - **Feedback:** ${{ fromJSON(env.JOKE_RESULT).feedback }}
+            - **Score:** ${{ steps.parse-json.outputs.score }}/10
+            - **Humor Type:** ${{ steps.parse-json.outputs.humor_type }}
+            - **Feedback:** ${{ steps.parse-json.outputs.feedback }}
