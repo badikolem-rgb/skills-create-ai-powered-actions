@@ -55,3 +55,6 @@ jobs:
             - **Score:** ${{ steps.parse-json.outputs.score }}/10
             - **Humor Type:** ${{ steps.parse-json.outputs.humor_type }}
             - **Feedback:** ${{ steps.parse-json.outputs.feedback }}
+            env:
+              FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: 'true'
+              ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION: 'true'
